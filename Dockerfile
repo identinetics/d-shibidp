@@ -3,7 +3,7 @@ FROM centos:centos7
 MAINTAINER Rainer Hörbe r2h2@hoerbe.at
 
 RUN yum -y update \
- && yum -y install curl iproute lsof openssl tar unzip which wget \
+ && yum -y install curl iproute lsof net-tools openssl tar unzip which wget \
  && yum clean all
 
 # Java
@@ -17,19 +17,20 @@ RUN echo "export JAVA_HOME=$JAVA_HOME" >> /root/.bashrc \
 COPY install/downloads/jetty /opt/jetty
 COPY install/downloads/jetty/bin/jetty.sh /etc/init.d/jetty
 COPY install/jetty-base /opt/jetty-base/
-ARG USERNAME=jetty
+ARG USERNAME
 ARG UID
 RUN groupadd --gid $UID $USERNAME \
  && useradd --gid $UID --uid $UID $USERNAME \
  && chown $USERNAME:$USERNAME /run \
- #&& chown -R $USERNAME:$USERNAME /opt/jetty \
  && chown -R $USERNAME:$USERNAME /opt/jetty-base
 
 # Shibboleth IDP
 COPY install/downloads/shibboleth-idp-distribution /opt/shibboleth-idp-distribution
+RUN chown -R $USERNAME:$USERNAME /opt/shibboleth-idp-distribution
 
 COPY install/scripts /opt/scripts/
 RUN chmod -R +x /opt/scripts/
 # 8443 (browser TLS), 9443 SOAP, 8080 (no TLS)
-EXPOSE 8443 9443
+# do not expose ports, but use proxy for 8080 instead
+# EXPOSE 8443 9443
 CMD ["/opt/scripts/start.sh"]

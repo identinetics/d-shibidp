@@ -19,12 +19,19 @@ running on the latest CentOS 7 base.
 2. run build.sh  # this will also create the host directories to be munted in the container
 
 
-## Usage:
- First run run.sh to start shibd:
+## Configure & run
  
     run.sh -h  # print usage
-    # run the IDP's install script
-    run.sh -ipr /opt/scripts/install_idp.sh
+    
+    # run the IDP's install script (keep the defaults for the source and installation directories)
+    # this will throw away the container, but the config files are kept on the docker host
+    run.sh -i /opt/scripts/install_idp.sh  
+
+    # now configure the IDP
+    use idp.home/metadata/idp-metadata.xml to create a reasonable metadata file and upload it the the metadata feed
+    configure the metadata provider
+    
+
     # start jetty
     run.sh     
  
