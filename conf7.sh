@@ -10,8 +10,8 @@ export IMAGENAME="r2h2/shibidp${IMGID}"
 export CONTAINERNAME="${IMGID}shibidp"
 export CONTAINERUSER="jetty${IMGID}"  # group and user to run container
 export CONTAINERUID="800${IMGID}"     # gid and uid for CONTAINERUSER
-export ENTITYID='https://idp1.test.wpv.portalverbund.at/idp.xml'
-export IDP_FQDN='idp1.test.wpv.portalverbund.at'
+export ENTITYID='https://idp1.test.edu.portalverbund.at/idp.xml'
+export IDP_FQDN='idp1.test.edu.portalverbund.at'
 export KEYSTOREPW='changeit'
 export BUILDARGS="
     --build-arg USERNAME=$CONTAINERUSER \
@@ -25,25 +25,24 @@ export ENVSETTINGS="
 export NETWORKSETTINGS="
     --net http_proxy
     --ip 10.1.1.${IMGID}
+    -p 8443:8443
+    -p 9443:9443
 "
 export VOLROOT="/docker_volumes/$CONTAINERNAME"  # container volumes on docker host
 export VOLMAPPING="
     -v $VOLROOT/etc/pki/shib-idp/:/etc/pki/shib-idp/:Z
     -v $VOLROOT/opt/jetty-base/logs/:/opt/jetty-base/logs/:Z
     -v $VOLROOT/opt/shibboleth-idp/:/opt/shibboleth-idp/:Z
-    -v $shareddata_root/var/md_feed:/opt/md_feed:ro
+    -v $shareddata_root/md_feed:/opt/md_feed:ro
 "
-export STARTCMD='/opt/scripts/start.sh'
+export STARTCMD='/start.sh'
 
 # first create user/group/host directories if not existing
 if ! id -u $CONTAINERUSER &>/dev/null; then
     groupadd -g $CONTAINERUID $CONTAINERUSER
     adduser -M -g $CONTAINERUID -u $CONTAINERUID $CONTAINERUSER
 fi
-if [ -d $VOLROOT/var/log/$CONTAINERNAME ]; then
-    mkdir -p $VOLROOT/var/log
-    chown $CONTAINERUSER:$CONTAINERUSER $VOLROOT/var/log
-fi
+
 # create dir with given user if not existing, relative to $HOSTVOLROOT; set/repair ownership
 function chkdir {
     dir=$1

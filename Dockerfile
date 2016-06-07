@@ -22,15 +22,17 @@ ARG UID
 RUN groupadd --gid $UID $USERNAME \
  && useradd --gid $UID --uid $UID $USERNAME \
  && chown $USERNAME:$USERNAME /run \
- && chown -R $USERNAME:$USERNAME /opt/jetty-base
+ && chown -R $USERNAME:$USERNAME /opt/jetty-base \
+ && ln -s /opt/jetty-base/logs /var/log/jetty/ \
+ && ln -s /opt/shibboleth-idp/conf/ /etc/shib-idp/
 
 # Shibboleth IDP
 COPY install/downloads/shibboleth-idp-distribution /opt/shibboleth-idp-distribution
 RUN chown -R $USERNAME:$USERNAME /opt/shibboleth-idp-distribution
 
-COPY install/scripts /opt/scripts/
-RUN chmod -R +x /opt/scripts/
+COPY install/scripts/*.sh /
+RUN chmod -R +x /*.sh
 # 8443 (browser TLS), 9443 SOAP, 8080 (no TLS)
 # do not expose ports, but use proxy for 8080 instead
 # EXPOSE 8443 9443
-CMD ["/opt/scripts/start.sh"]
+CMD ["/start.sh"]
