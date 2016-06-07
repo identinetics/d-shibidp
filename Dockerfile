@@ -23,6 +23,7 @@ RUN groupadd --gid $UID $USERNAME \
  && useradd --gid $UID --uid $UID $USERNAME \
  && chown $USERNAME:$USERNAME /run \
  && chown -R $USERNAME:$USERNAME /opt/jetty-base \
+ && mkdir -p /var/log/jetty/ /etc/shib-idp/ \
  && ln -s /opt/jetty-base/logs /var/log/jetty/ \
  && ln -s /opt/shibboleth-idp/conf/ /etc/shib-idp/
 
