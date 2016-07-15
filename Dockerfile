@@ -1,5 +1,4 @@
 FROM centos:centos7
-
 MAINTAINER Rainer Hörbe r2h2@hoerbe.at
 
 RUN yum -y update \
