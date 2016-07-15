@@ -31,7 +31,8 @@ running on the latest CentOS 7 base.
     # now configure /opt/jetty-base and /etc/shibboleth-idp
     . use idp.home/metadata/idp-metadata.xml to create a reasonable metadata file and upload it to the metadata feed
     . configure the metadata provider
-    . configure jetty certificates (jetty-base/start.d/ssl.ini, backchannel.ini)    
+    . configure jetty certificates (jetty-base/start.d/ssl.ini, backchannel.ini)  
+    . optional: redirect logfiles to /var/log: see logback.xml (both jetty and shib-idp)
 
     # start jetty
     run.sh     

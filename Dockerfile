@@ -16,16 +16,8 @@ RUN echo "export JAVA_HOME=$JAVA_HOME" >> /root/.bashrc \
 COPY install/downloads/jetty /opt/jetty
 COPY install/downloads/jetty/bin/jetty.sh /etc/init.d/jetty
 COPY install/jetty-base /opt/default/jetty-base
-ARG USERNAME
-ARG UID
-RUN groupadd --gid $UID $USERNAME \
- && useradd --gid $UID --uid $UID $USERNAME \
- && chown $USERNAME:$USERNAME /run \
- && chown -R $USERNAME:$USERNAME /opt/default/jetty-base
-
 # Shibboleth IDP
 COPY install/downloads/shibboleth-idp-distribution /opt/shibboleth-idp-distribution
-RUN chown -R $USERNAME:$USERNAME /opt/shibboleth-idp-distribution
 
 COPY install/scripts/*.sh /
 RUN chmod -R +x /*.sh
@@ -33,3 +25,11 @@ RUN chmod -R +x /*.sh
 # do not expose ports, but use proxy for 8080 instead
 # EXPOSE 8443 9443
 CMD ["/start.sh"]
+
+ARG USERNAME=jetty
+ARG UID=1000
+RUN groupadd --gid $UID $USERNAME \
+ && useradd --gid $UID --uid $UID $USERNAME \
+ && chown $USERNAME:$USERNAME /run \
+ && chown -R $USERNAME:$USERNAME /opt/default/jetty-base \
+ && chown -R $USERNAME:$USERNAME /opt/shibboleth-idp-distribution
