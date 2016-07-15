@@ -21,10 +21,7 @@ ARG UID
 RUN groupadd --gid $UID $USERNAME \
  && useradd --gid $UID --uid $UID $USERNAME \
  && chown $USERNAME:$USERNAME /run \
- && chown -R $USERNAME:$USERNAME /opt/jetty-base \
- && mkdir -p /var/log/jetty/ /etc/shib-idp/ \
- && ln -s /opt/jetty-base/logs /var/log/jetty/ \
- && ln -s /opt/shibboleth-idp/conf/ /etc/shib-idp/
+ && chown -R $USERNAME:$USERNAME /opt/default/jetty-base
 
 # Shibboleth IDP
 COPY install/downloads/shibboleth-idp-distribution /opt/shibboleth-idp-distribution
