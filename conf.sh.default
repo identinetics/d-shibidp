@@ -32,7 +32,7 @@ export NETWORKSETTINGS="
 export VOLROOT="/docker_volumes/$CONTAINERNAME"  # container volumes on docker host
 export VOLMAPPING="
     -v $VOLROOT/etc/pki/shib-idp/:/etc/pki/shib-idp/:Z
-    -v $VOLROOT/opt/jetty-base/logs/:/opt/jetty-base/logs/:Z
+    -v $VOLROOT/opt/jetty-base/:/opt/jetty-base/:Z
     -v $VOLROOT/opt/shibboleth-idp/:/opt/shibboleth-idp/:Z
     -v $shareddata_root/md_feed:/opt/md_feed:ro
 "
@@ -56,7 +56,12 @@ function chkdir {
     $sudo chown -R $user:$user "$VOLROOT/$dir"
 }
 
-chkdir opt/jetty-base/logs/ $CONTAINERUSER
+chkdir opt/jetty-base/ $CONTAINERUSER
 chkdir /opt/shibboleth-idp/ $CONTAINERUSER
 chkdir /etc/pki/shib-idp/ $CONTAINERUSER
 
+# redirect log files from jetty standard location to linux default path
+#ln -s $VOLROOT/opt/shibboleth-idp/conf $VOLROOT/etc/shibboleth-idp 2>/dev/null
+#ln -s $VOLROOT/opt/shibboleth-idp/logs $VOLROOT/var/log/idp 2>/dev/null
+#ln -s $VOLROOT/opt/jetty-base/logs $VOLROOT/var/log/jetty 2>/dev/null
+mkdir -p $VOLROOT/var/log/idp $VOLROOT/var/log/jetty

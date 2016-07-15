@@ -15,7 +15,7 @@ RUN echo "export JAVA_HOME=$JAVA_HOME" >> /root/.bashrc \
 # Jetty
 COPY install/downloads/jetty /opt/jetty
 COPY install/downloads/jetty/bin/jetty.sh /etc/init.d/jetty
-COPY install/jetty-base /opt/jetty-base/
+COPY install/jetty-base /opt/default/jetty-base/
 ARG USERNAME
 ARG UID
 RUN groupadd --gid $UID $USERNAME \

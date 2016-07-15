@@ -1,5 +1,8 @@
 #!/bin/sh
 
+
+cp -pr /opt/default/jetty-base /opt/jetty-base
+
 cd /opt/shibboleth-idp-distribution/
 bin/install.sh \
     -Didp.keystore.password=${KEYSTOREPW} \
