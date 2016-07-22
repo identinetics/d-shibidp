@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# extended rhoerbe/docker-template@github 2016-07-11
 
 # data shared between containers goes via these definitions:
 dockervol_root='/docker_volumes'
 shareddata_root="${dockervol_root}/1shared_data"
 
 # configure container
-export IMGID='7'  # range from 2 .. 99; must be unique
+export IMGID='07'  # range from 02 .. 99; must be unique
 export IMAGENAME="r2h2/shibidp${IMGID}"
 export CONTAINERNAME="${IMGID}shibidp"
 export CONTAINERUSER="jetty${IMGID}"  # group and user to run container
-export CONTAINERUID="800${IMGID}"     # gid and uid for CONTAINERUSER
+export CONTAINERUID="80${IMGID}"     # gid and uid for CONTAINERUSER
 export ENTITYID='https://idp1.test.edu.portalverbund.at/idp.xml'
 export IDP_FQDN='idp1.test.edu.portalverbund.at'
 export KEYSTOREPW='changeit'
@@ -45,7 +44,7 @@ fi
 if ! id -u $CONTAINERUSER &>/dev/null; then
     $sudo groupadd -g $CONTAINERUID $CONTAINERUSER
     $sudo adduser -M --gid $CONTAINERUID --uid $CONTAINERUID $CONTAINERUSER  #CentOS
-    #$sudo adduser --gid $CONTAINERUID --disabled-password --gecos "" --uid $CONTAINERUID $CONTAINERUSER #Debian
+    #$sudo adduser --gid $CONTAINERUID --no-create-home --disabled-password --gecos "" --uid $CONTAINERUID $CONTAINERUSER #Debian
 fi
 
 # create dir with given user if not existing, relative to $HOSTVOLROOT
