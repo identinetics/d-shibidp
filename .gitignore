@@ -1,3 +1,10 @@
 .DS_Store
 .idea
+
+build_prepare.sh
 conf*.sh
+
+install/*
+!install/scripts
+install/downloads
+!install/downloads/.keep
