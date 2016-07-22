@@ -2,7 +2,7 @@
 
 # data shared between containers goes via these definitions:
 dockervol_root='/docker_volumes'
-shareddata_root="${dockervol_root}/1shared_data"
+shareddata_root="${dockervol_root}/01shared_data"
 
 # configure container
 export IMGID='07'  # range from 02 .. 99; must be unique
@@ -63,4 +63,4 @@ chkdir /etc/pki/shib-idp/ $CONTAINERUSER
 #ln -s $VOLROOT/opt/shibboleth-idp/conf $VOLROOT/etc/shibboleth-idp 2>/dev/null
 #ln -s $VOLROOT/opt/shibboleth-idp/logs $VOLROOT/var/log/idp 2>/dev/null
 #ln -s $VOLROOT/opt/jetty-base/logs $VOLROOT/var/log/jetty 2>/dev/null
-mkdir -p $VOLROOT/var/log/idp $VOLROOT/var/log/jetty
+$sudo mkdir -p $VOLROOT/var/log/idp $VOLROOT/var/log/jetty
