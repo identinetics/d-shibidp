@@ -4,7 +4,5 @@
 build_prepare.sh
 conf*.sh
 
-install/*
+install
 !install/scripts
-install/downloads
-!install/downloads/.keep
