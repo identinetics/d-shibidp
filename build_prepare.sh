@@ -4,16 +4,17 @@ set -x
 # download and verify components to be installed with docker build
 mkdir -p install/downloads
 cd install/downloads
-export JAVA_UPDATE_VERSION=60
-export JAVA_VERSION=1.8.0_${JAVA_UPDATE_VERSION}
+# JAVA JRE 1.8.0 Update 102
+JRE_DOWNLOAD_URL='http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102-linux-x64.tar.gz'
+JRE_CHECKSUM='214ff6b52f5b1bccfc139dca910cea25f6fa19b9b96b4e3c10e699cd3e780dfb  jre-linux-x64.tar.gz'
 if [ ! -d "jre1.8.0" ]; then
+    rm -rf jre1.8.0_*
     wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-        -O jre-linux-x64.tar.gz \
-        http://download.oracle.com/otn-pub/java/jdk/8u${JAVA_UPDATE_VERSION}-b27/jre-8u${JAVA_UPDATE_VERSION}-linux-x64.tar.gz
-    echo "49dadecd043152b3b448288a35a4ee6f3845ce6395734bacc1eae340dff3cbf5  jre-linux-x64.tar.gz" | sha256sum -c -
+        -O jre-linux-x64.tar.gz $JRE_DOWNLOAD_URL
+    echo $JRE_CHECKSUM | sha256sum -c -
     tar -xzf jre-linux-x64.tar.gz
     rm jre-linux-x64.tar.gz
-    ln -s jre1.8.0_${JAVA_UPDATE_VERSION} jre1.8.0
+    ln -s jre1.8.0_* jre1.8.0
 fi
 if [ ! -d "jetty" ]; then
     # download jetty int ./jetty. Then jetty9-dta-ssl-1.0.0.jar, logback, slf4j go into jetty-base
