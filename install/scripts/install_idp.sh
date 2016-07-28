@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-cp -pr /opt/default/jetty-base /opt/jetty-base
+cp -pr /opt/default/jetty-base /opt/
 
 cd /opt/shibboleth-idp-distribution/
 bin/install.sh \

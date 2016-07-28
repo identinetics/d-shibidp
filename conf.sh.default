@@ -28,11 +28,12 @@ export NETWORKSETTINGS="
     -p 8443:8443
     -p 9443:9443
 "
-export VOLROOT="/docker_volumes/$CONTAINERNAME"  # container volumes on docker host
+export VOLROOT="${dockervol_root}/$CONTAINERNAME"  # container volumes on docker host
 export VOLMAPPING="
     -v $VOLROOT/etc/pki/shib-idp/:/etc/pki/shib-idp/:Z
     -v $VOLROOT/opt/jetty-base/:/opt/jetty-base/:Z
     -v $VOLROOT/opt/shibboleth-idp/:/opt/shibboleth-idp/:Z
+    -v $VOLROOT/var/log/:/var/log/:Z
     -v $shareddata_root/md_feed:/opt/md_feed:ro
 "
 export STARTCMD='/start.sh'
@@ -56,11 +57,12 @@ function chkdir {
 }
 
 chkdir opt/jetty-base/ $CONTAINERUSER
-chkdir /opt/shibboleth-idp/ $CONTAINERUSER
-chkdir /etc/pki/shib-idp/ $CONTAINERUSER
+chkdir opt/shibboleth-idp/ $CONTAINERUSER
+chkdir etc/pki/shib-idp/ $CONTAINERUSER
+chkdir var/log/idp $CONTAINERUSER
+chkdir var/log/jetty $CONTAINERUSER
 
-# redirect log files from jetty standard location to linux default path
+# redirect log files from jetty to linux default path (alternative to changing logback.xml)
 #ln -s $VOLROOT/opt/shibboleth-idp/conf $VOLROOT/etc/shibboleth-idp 2>/dev/null
 #ln -s $VOLROOT/opt/shibboleth-idp/logs $VOLROOT/var/log/idp 2>/dev/null
 #ln -s $VOLROOT/opt/jetty-base/logs $VOLROOT/var/log/jetty 2>/dev/null
-$sudo mkdir -p $VOLROOT/var/log/idp $VOLROOT/var/log/jetty

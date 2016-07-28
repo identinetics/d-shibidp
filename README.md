@@ -30,9 +30,12 @@ running on the latest CentOS 7 base.
 
     # now configure /opt/jetty-base and /etc/shibboleth-idp
     . use idp.home/metadata/idp-metadata.xml to create a reasonable metadata file and upload it to the metadata feed
-    . configure the metadata provider
+    . configure the metadata provider (local via file system or well-know location URL)
     . configure jetty certificates (jetty-base/start.d/ssl.ini, backchannel.ini)  
-    . optional: redirect logfiles to /var/log: see logback.xml (both jetty and shib-idp)
+    . attribute-filter, -resolver; idp.properites; ldap.properties 
+    . optional: redirect logfiles to /var/log: see logback.xml (both jetty and shib-idp
+    . if running with a reverse proxy (load balancer) fronting the IDP you need to tell jetty to
+      activate the ForwardedRequestCustomize class (see example install/jetty-base/etc/jetty.xml)
 
     # start jetty
     run.sh     
