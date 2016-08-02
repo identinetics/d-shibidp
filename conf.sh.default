@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
-# data shared between containers goes via these definitions:
 dockervol_root='/docker_volumes'
+# data shared between containers:
 shareddata_root="${dockervol_root}/01shared_data"
+MDFEEDCONTAINER='03pyff'
 
 # configure container
 export IMGID='07'  # range from 02 .. 99; must be unique
@@ -10,8 +11,8 @@ export IMAGENAME="r2h2/shibidp${IMGID}"
 export CONTAINERNAME="${IMGID}shibidp"
 export CONTAINERUSER="jetty${IMGID}"  # group and user to run container
 export CONTAINERUID="80${IMGID}"     # gid and uid for CONTAINERUSER
-export ENTITYID='https://idp1.test.edu.portalverbund.at/idp.xml'
 export IDP_FQDN='idp1.test.edu.portalverbund.at'
+export ENTITYID="https://$IDP_FQDN/idp.xml"
 export KEYSTOREPW='changeit'
 export BUILDARGS="
     --build-arg USERNAME=$CONTAINERUSER \
@@ -34,7 +35,7 @@ export VOLMAPPING="
     -v $VOLROOT/opt/jetty-base/:/opt/jetty-base/:Z
     -v $VOLROOT/opt/shibboleth-idp/:/opt/shibboleth-idp/:Z
     -v $VOLROOT/var/log/:/var/log/:Z
-    -v $shareddata_root/md_feed:/opt/md_feed:ro
+    -v $shareddata_root/$MDFEEDCONTAINER/md_feed:/opt/md_feed:ro
 "
 export STARTCMD='/start.sh'
 
