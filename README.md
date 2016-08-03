@@ -17,16 +17,16 @@ running on the latest CentOS 7 base.
 ## Build the docker image
 1. copy conf.sh.default to conf.sh (or confN.sh, where n is the container number)
 2. adopt conf*.sh
-3. run build.sh  # this will also create the host directories to be munted in the container
+3. run dscripts/build.sh  # this will also create the host directories to be munted in the container
 
 
 ## Configure & run
  
-    run.sh -h  # print usage
+    dscripts/run.sh -h  # print usage
     
     # run the IDP's install script (keep the defaults for the source and installation directories)
     # this will throw away the container, but the config files are kept on the docker host
-    run.sh -i /opt/scripts/install_idp.sh  
+    dscripts/run.sh -i /opt/scripts/install_idp.sh  
 
     # now configure /opt/jetty-base and /etc/shibboleth-idp
     . use idp.home/metadata/idp-metadata.xml to create a reasonable metadata file and upload it to the metadata feed
@@ -38,9 +38,10 @@ running on the latest CentOS 7 base.
       activate the ForwardedRequestCustomize class (see example install/jetty-base/etc/jetty.xml)
 
     # start jetty
-    run.sh     
+    dscripts/run.sh     
  
-
+    # To effect changed to the idp.war file:
+    dscripts/run.sh -ip /rebuild_idp_war.sh
 
 ## References
 
