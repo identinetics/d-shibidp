@@ -20,7 +20,8 @@ COPY install/jetty-base /opt/default/jetty-base
 COPY install/downloads/shibboleth-idp-distribution /opt/shibboleth-idp-distribution
 
 # The IdP status page depends on the JSP Standard Tag Library, which is not part of the distribution
-RUN cd /opt/shibboleth-idp-distribution/edit-webapp/WEB-INF/lib \
+RUN mkdir -p /opt/shibboleth-idp-distribution/edit-webapp/WEB-INF/lib \
+ && cd /opt/shibboleth-idp-distribution/edit-webapp/WEB-INF/lib \
  && curl -O https://repo1.maven.org/maven2/jstl/jstl/1.2/jstl-1.2.jar
 # To rebuild idp.war: use /rebuild_idp_war.sh in the container
 
