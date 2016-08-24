@@ -36,6 +36,7 @@ running on the latest CentOS 7 base.
     . optional: redirect logfiles to /var/log: see logback.xml (both jetty and shib-idp
     . if running with a reverse proxy (load balancer) fronting the IDP you need to tell jetty to
       activate the ForwardedRequestCustomize class (see example install/jetty-base/etc/jetty.xml)
+    . optionally copy jstl-1.2.jar to /opt/shibboleth-idp/edit-webapp/WEB-INF/lib (-> for idp/status page)
 
     # start jetty
     dscripts/run.sh     
