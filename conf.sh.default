@@ -49,19 +49,19 @@ if ! id -u $CONTAINERUSER &>/dev/null; then
     #$sudo adduser --gid $CONTAINERUID --no-create-home --disabled-password --gecos "" --uid $CONTAINERUID $CONTAINERUSER #Debian
 fi
 
-# create dir with given user if not existing, relative to $HOSTVOLROOT
-function chkdir {
-    dir=$1
-    user=$2
-    $sudo mkdir -p "$VOLROOT/$dir"
-    $sudo chown -R $user:$user "$VOLROOT/$dir"
+# create dir $1 with given user $2if not existing, relative to $4; set/repair ownership
+# arg 1: dir, arg 2: user; arg 3: group (defaults to user); arg 4: vol root (defaults to $VOLROOT)
+function chkdir() {
+    dir=$1; user=$2; group=${3:-$user} volroot=${4:-$VOLROOT}
+    $sudo mkdir -p "$volroot/$dir"
+    $sudo chown -R $user:$group "$volroot/$dir"
 }
 
-chkdir opt/jetty-base/ $CONTAINERUSER
-chkdir opt/shibboleth-idp/ $CONTAINERUSER
-chkdir etc/pki/shib-idp/ $CONTAINERUSER
-chkdir var/log/idp $CONTAINERUSER
-chkdir var/log/jetty $CONTAINERUSER
+chkdir etc/pki/pyff $CONTAINERUSER
+chkdir etc/pyff $CONTAINERUSER
+chkdir var/log $CONTAINERUSER
+chkdir var/md_source $CONTAINERUSER
+chkdir "$CONTAINERNAME/md_feed" $CONTAINERUSER $SHARED_CONTAINERS_GROUP $shareddata_root
 
 # redirect log files from jetty to linux default path (alternative to changing logback.xml)
 #ln -s $VOLROOT/opt/shibboleth-idp/conf $VOLROOT/etc/shibboleth-idp 2>/dev/null
