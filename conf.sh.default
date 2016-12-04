@@ -1,69 +1,161 @@
 #!/usr/bin/env bash
 
-dockervol_root='/docker_volumes'
-# data shared between containers:
-shareddata_root="${dockervol_root}/01shared_data"
-MDFEEDCONTAINER='03pyff'
+# settings for docker build, run and exec
 
-# configure container
-export IMGID='07'  # range from 02 .. 99; must be unique
-export IMAGENAME="r2h2/shibidp${IMGID}"
-export CONTAINERNAME="${IMGID}shibidp"
-export CONTAINERUSER="jetty${IMGID}"  # group and user to run container
-export CONTAINERUID="80${IMGID}"     # gid and uid for CONTAINERUSER
-export IDP_FQDN='idp1.test.edu.portalverbund.at'
-export ENTITYID="https://$IDP_FQDN/idp.xml"
-export KEYSTOREPW='changeit'
-export BUILDARGS="
-    --build-arg USERNAME=$CONTAINERUSER \
-    --build-arg UID=$CONTAINERUID \
-"
-export ENVSETTINGS="
-    -e ENTITYID=$ENTITYID
-    -e IDP_FQDN=$IDP_FQDN
-    -e KEYSTOREPW=$KEYSTOREPW
-"
-export NETWORKSETTINGS="
-    --net dockernet
-    --ip 10.1.1.${IMGID}
-    -p 8443:8443
-    -p 9443:9443
-"
-export VOLROOT="${dockervol_root}/$CONTAINERNAME"  # container volumes on docker host
-export VOLMAPPING="
-    -v $VOLROOT/etc/pki/shib-idp/:/etc/pki/shib-idp/:Z
-    -v $VOLROOT/opt/jetty-base/:/opt/jetty-base/:Z
-    -v $VOLROOT/opt/shibboleth-idp/:/opt/shibboleth-idp/:Z
-    -v $VOLROOT/var/log/:/var/log/:Z
-    -v $shareddata_root/$MDFEEDCONTAINER/md_feed:/opt/md_feed:ro
-"
-export STARTCMD='/start.sh'
-
-# first start: create user/group/host directories
-if [ $(id -u) -ne 0 ]; then
-    sudo="sudo"
-fi
-if ! id -u $CONTAINERUSER &>/dev/null; then
-    $sudo groupadd -g $CONTAINERUID $CONTAINERUSER
-    $sudo adduser -M --gid $CONTAINERUID --uid $CONTAINERUID $CONTAINERUSER  #CentOS
-    #$sudo adduser --gid $CONTAINERUID --no-create-home --disabled-password --gecos "" --uid $CONTAINERUID $CONTAINERUSER #Debian
-fi
-
-# create dir $1 with given user $2if not existing, relative to $4; set/repair ownership
-# arg 1: dir, arg 2: user; arg 3: group (defaults to user); arg 4: vol root (defaults to $VOLROOT)
-function chkdir() {
-    dir=$1; user=$2; group=${3:-$user} volroot=${4:-$VOLROOT}
-    $sudo mkdir -p "$volroot/$dir"
-    $sudo chown -R $user:$group "$volroot/$dir"
+main() {
+  init_sudo
+  set_volume_root
+  set_image_and_container_name
+  set_users
+  set_buildargs
+  set_run_args
+  set_network
+  set_vol_mapping
 }
 
-chkdir etc/pki/pyff $CONTAINERUSER
-chkdir etc/pyff $CONTAINERUSER
-chkdir var/log $CONTAINERUSER
-chkdir var/md_source $CONTAINERUSER
-chkdir "$CONTAINERNAME/md_feed" $CONTAINERUSER $SHARED_CONTAINERS_GROUP $shareddata_root
 
-# redirect log files from jetty to linux default path (alternative to changing logback.xml)
-#ln -s $VOLROOT/opt/shibboleth-idp/conf $VOLROOT/etc/shibboleth-idp 2>/dev/null
-#ln -s $VOLROOT/opt/shibboleth-idp/logs $VOLROOT/var/log/idp 2>/dev/null
-#ln -s $VOLROOT/opt/jetty-base/logs $VOLROOT/var/log/jetty 2>/dev/null
+set_volume_root() {
+    DOCKERVOL_ROOT='/docker_volumes'
+    SHAREDDATA_ROOT="${DOCKERVOL_ROOT}/01shared_data"    # data shared between containers
+}
+
+
+set_image_and_container_name() {
+    # This IMGID qualifies image, container, user and IP adddress; this is helpful for managing
+    # processes on the docker host etc.
+    IMGID='07'  # range from 02 .. 99; must be unique per node
+    PROJSHORT='idp1exampleorg'
+    export IMAGENAME="r2h2/$PROJSHORT${IMGID}"
+    export CONTAINERNAME="${IMGID}$PROJSHORT"
+}
+
+
+set_users() {
+    export CONTAINERUSER="$PROJSHORT${IMGID}"   # group and user to run container
+    export CONTAINERUID="80${IMGID}"     # gid and uid for CONTAINERUSER
+    export SHARED_CONTAINERS_GROUP="sharedcont"   # group shared by other containers
+    export SHARED_CONTAINERS_GROUPID="8000"
+    export START_AS_ROOT=      # 'True' (e.g. for apache to fall back to www user)
+}
+
+
+set_buildargs() {
+    export BUILDARGS="
+        --build-arg USERNAME=$CONTAINERUSER
+        --build-arg UID=$CONTAINERUID
+    "
+}
+
+
+set_run_args() {
+    export ENVSETTINGS="
+        -e ENTITYID=https://idp1.example.org/idp.xml
+        -e IDP_FQDN=idp1.example.org
+        -e KEYSTOREPW=changeit
+    "
+    export STARTCMD='/start.sh'  # unset or blank to use image default
+}
+
+
+set_network() {
+    # The docker0 bridge has dynamic addresses, whereas a custom bridge allows predictable addresses
+    NETWORK=dockernet
+    set +e  # errexit off
+    $sudo docker network ls | awk '{print $2}' | grep $NETWORK > /dev/null
+    if (( $? == 1)); then
+        $sudo docker network create --driver bridge --subnet=10.1.1.0/24 \
+                  -o com.docker.network.bridge.name=br-$NETWORK $NETWORK
+    fi
+    export NETWORKSETTINGS="
+        --net $NETWORK
+        --ip 10.1.1.${IMGID}
+        -p 8443:8443
+    "
+}
+
+
+set_vol_mapping() {
+    create_user $CONTAINERUSER $CONTAINERUID
+
+    MDFEED_DIR="$SHAREDDATA_ROOT/03pyffTestWpv/md_feed"
+
+    VOLROOT="${DOCKERVOL_ROOT}/$CONTAINERNAME"  # container volumes on docker host
+    map_volume "$VOLROOT/etc/pki/shib-idp/" '/etc/pki/shib-idp/' 'ro'
+    map_volume "$MDFEED_DIR" '/opt/md_feed' 'ro'
+    map_volume "$VOLROOT/opt/jetty-base/" '/opt/jetty-base/' 'rw'
+    map_volume "$VOLROOT/opt/shibboleth-idp/" '/opt/shibboleth-idp/' 'rw'
+    map_volume "$VOLROOT/var/log/" '/var/log/' 'rw'
+
+    # config redirects log files from jetty standard location to linux default path
+    mkdir -p $VOLROOT/var/log/idp
+    mkdir -p $VOLROOT/var/log/jetty
+}
+
+
+map_volume() {
+    HOSTPATH=$1; CONTAINERPATH=$2; MOUNT_OPTION=$3
+    export VOLMAPPING="$VOLMAPPING -v $HOSTPATH:$CONTAINERPATH:$MOUNT_OPTION"
+    chkdir $HOSTPATH
+}
+
+
+create_user() {
+    A_USERNAME=$1;A_UID=$2
+    # first start: create user/group/host directories
+    if ! id -u $A_USERNAME &>/dev/null; then
+        if [[ ${OSTYPE//[0-9.]/} == 'darwin' ]]; then  # OSX
+                $sudo sudo dseditgroup -o create -i $A_UID $A_USERNAME
+                $sudo dscl . create /Users/$A_USERNAME UniqueID $A_UID
+                $sudo dscl . create /Users/$A_USERNAME PrimaryGroupID $A_UID
+        else  # Linux
+          source /etc/os-release
+          case $ID in
+            centos|fedora|rhel)
+                $sudo groupadd --non-unique -g $A_UID $A_USERNAME || true
+                $sudo adduser --non-unique -M --gid $A_UID --comment "" --uid $A_UID $A_USERNAME
+                ;;
+            debian|ubuntu)
+                $sudo groupadd -g $A_UID $A_USERNAME
+                $sudo adduser --gid $A_UID --no-create-home --disabled-password --gecos "" --uid $A_UID $A_USERNAME
+                ;;
+            *)
+                echo "do not know how to add user/group for OS ${OSTYPE} ${NAME}"
+                ;;
+          esac
+        fi
+    fi
+}
+
+
+init_sudo() {
+    if [ $(id -u) -ne 0 ]; then
+        sudo="sudo"
+    fi
+}
+
+chkdir() {
+    if [[ "${1:0:1}" == / ]]; then
+        dir=$1  # absolute path
+    else
+        dir=$VOLROOT/$1
+    fi
+    if [ ! -e "$dir" ]; then
+        echo "$0: Missing directory: $dir"
+        exit 1
+    fi
+}
+
+
+createdir() {
+    if [[ "${1:0:1}" == / ]]; then
+        dir=$1  # absolute path
+    else
+        dir=$VOLROOT/$1
+    fi
+    user=$2
+    $sudo mkdir -p $dir
+    $sudo chown -R $user:$user $dir
+}
+
+
+main
