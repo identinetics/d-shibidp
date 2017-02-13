@@ -1,20 +1,62 @@
 #!/usr/bin/env bash
 
+# Initialize and update the docker build environment
+# Providing resources before starting docker build provides better control about updates
+# and can speed up the build process.
+
+update_pkg="False"
+
+while getopts ":hnuU" opt; do
+  case $opt in
+    n)
+      config_nr=$OPTARG
+      re='^[0-9][0-9]?$'
+      if ! [[ $OPTARG =~ $re ]] ; then
+         echo "error: -n argument is not a number in the range from 02 .. 99" >&2; exit 1
+      fi
+      ;;
+    u)
+      update_pkg="True"
+      ;;
+    U)
+      update_pkg="False"
+      ;;
+    *)
+      echo "usage: $0 [-n] [-u]
+   -U  do not update git repos in docker build context (default)
+   -u  update git repos in docker build context
+
+   To update packages delivered as tar-balls just delete them from install/opt
+   "
+      exit 0
+      ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+
+workdir=$(cd $(dirname $BASH_SOURCE[0]) && pwd)
+cd $workdir
+source ./conf${config_nr}.sh
+
+
 # download and verify components to be installed with docker build
 mkdir -p install/downloads
 cd install/downloads
-# JAVA JRE 1.8.0 Update 102
-JRE_DOWNLOAD_URL='http://download.oracle.com/otn-pub/java/jdk/8u102-b14/jre-8u102-linux-x64.tar.gz'
-JRE_CHECKSUM='214ff6b52f5b1bccfc139dca910cea25f6fa19b9b96b4e3c10e699cd3e780dfb  jre-linux-x64.tar.gz'
+# JAVA JRE 1.8.0 Update 121
 if [ ! -e "jre1.8.0" ]; then
+    JRE_CHECKSUM="30bf5fbac0cfbc9201cac1d6973dbc96e5f55043ab315eda8c7aeb23df4f2644  jre-linux-x64.tar.gz"
+    wget -qO- --no-cookies --no-check-certificate -O jre-linux-x64.tar.gz \
+        --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" \
+        "http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jre-8u121-linux-x64.tar.gz"
     rm -rf jre1.8.0_*
-    wget --no-check-certificate --no-cookies --header "Cookie: oraclelicense=accept-securebackup-cookie" \
-        -O jre-linux-x64.tar.gz $JRE_DOWNLOAD_URL
     echo $JRE_CHECKSUM | sha256sum -c -
     tar -xzf jre-linux-x64.tar.gz
     rm jre-linux-x64.tar.gz
     ln -sf jre1.8.0_* jre1.8.0
 fi
+
 if [ ! -e "jetty" ]; then
     # download jetty int ./jetty. Then jetty9-dta-ssl-1.0.0.jar, logback, slf4j go into jetty-base
     jetty_version='9.3.3.v20150827'
@@ -47,13 +89,18 @@ if [ ! -e "jetty" ]; then
         cp -p slf4j-api-1.7.18.jar ../../jetty-base/lib/logging/
     cd ..
 fi
- if [ ! -e "shibboleth-idp-distribution" ]; then
-     wget -O shibboleth-identity-provider.zip \
-         "https://shibboleth.net/downloads/identity-provider/3.2.1/shibboleth-identity-provider-3.2.1.zip"
-     echo "5b4e10afb5af2bd02fb16261c34fef8da5b47dabd501de101f00e88529eec2cf25b3518c4d865027820e66ab52730310b01dff7f223cb53194b48fe89ade0954  shibboleth-identity-provider.zip" | sha512sum -c -
-     unzip -q shibboleth-identity-provider.zip
-     rm shibboleth-identity-provider.zip
-     ln -sf shibboleth-identity-provider-3.2.1 shibboleth-idp-distribution
- fi
 
+# Download Shibboleth IDP
+PROD_VERSION='3.3.0'
+PROD_URL="https://shibboleth.net/downloads/identity-provider/latest/shibboleth-identity-provider-$PROD_VERSION.zip"
+PROD_SHA256='a0dd96ad8770539b6f1249f7cea98b944cff846b4831892e8deee62b91b60277'
+PROD_ZIPFILE="shibboleth-identity-provider-$PROD_VERSION.zip"
+PROD_INSTDIR='shibboleth-idp-distribution'
+get_from_ziparchive_with_checksum PROD_URL PROD_ZIPFILE PROD_SHA256
+
+
+if [ ! -e "shibboleth-idp-distribution/messages/messages_de.properties" ]; then
+	wget -O shibboleth-idp-distribution/messages/messages_de.properties \
+	    https://wiki.shibboleth.net/confluence/download/attachments/21660022/messages_de.properties
+fi
 cd ../..

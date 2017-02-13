@@ -1,5 +1,7 @@
 FROM centos:centos7
-MAINTAINER Rainer Hörbe r2h2@hoerbe.at
+LABEL maintainer="Rainer Hörbe <r2h2@hoerbe.at>" \
+      version="0.4.0" \
+      capabilites='--cap-drop=all'
 
 RUN yum -y update \
  && yum -y install curl iproute lsof net-tools openssl tar unzip which wget \
@@ -39,3 +41,10 @@ RUN groupadd --gid $UID $USERNAME \
  && chown $USERNAME:$USERNAME /run \
  && chown -R $USERNAME:$USERNAME /opt/default/jetty-base \
  && chown -R $USERNAME:$USERNAME /opt/shibboleth-idp-distribution
+
+RUN mkdir -p /var/log/idp /var/log/jetty
+
+VOLUME /etc/pki/shib-idp \
+       /opt/jetty-base \
+       /opt/shibboleth-idp \
+       /var/log
