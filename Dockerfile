@@ -35,7 +35,7 @@ RUN chmod -R +x /*.sh
 CMD ["/start.sh"]
 
 ARG USERNAME=jetty
-ARG UID=1000
+ARG UID=343007
 RUN groupadd --gid $UID $USERNAME \
  && useradd --gid $UID --uid $UID $USERNAME \
  && chown $USERNAME:$USERNAME /run \
