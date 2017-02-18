@@ -6,15 +6,8 @@
 
 update_pkg="False"
 
-while getopts ":hnuU" opt; do
+while getopts ":huU" opt; do
   case $opt in
-    n)
-      config_nr=$OPTARG
-      re='^[0-9][0-9]?$'
-      if ! [[ $OPTARG =~ $re ]] ; then
-         echo "error: -n argument is not a number in the range from 02 .. 99" >&2; exit 1
-      fi
-      ;;
     u)
       update_pkg="True"
       ;;
@@ -22,9 +15,9 @@ while getopts ":hnuU" opt; do
       update_pkg="False"
       ;;
     *)
-      echo "usage: $0 [-n] [-u]
-   -U  do not update git repos in docker build context (default)
+      echo "usage: $0 [-u] [-U]
    -u  update git repos in docker build context
+   -U  do not update git repos in docker build context (default)
 
    To update packages delivered as tar-balls just delete them from install/opt
    "
@@ -36,9 +29,9 @@ done
 shift $((OPTIND-1))
 
 
-workdir=$(cd $(dirname $BASH_SOURCE[0]) && pwd)
-cd $workdir
-source ./conf${config_nr}.sh
+BUILDDIR=$(cd $(dirname $BASH_SOURCE[0]) && pwd)
+source $BUILDDIR/dscripts/conf_lib.sh  # load library functions
+cd $BUILDDIR
 
 
 # download and verify components to be installed with docker build
@@ -96,7 +89,7 @@ PROD_URL="https://shibboleth.net/downloads/identity-provider/latest/shibboleth-i
 PROD_SHA256='a0dd96ad8770539b6f1249f7cea98b944cff846b4831892e8deee62b91b60277'
 PROD_ZIPFILE="shibboleth-identity-provider-$PROD_VERSION.zip"
 PROD_INSTDIR='shibboleth-idp-distribution'
-get_from_ziparchive_with_checksum PROD_URL PROD_ZIPFILE PROD_SHA256
+get_from_ziparchive_with_checksum $PROD_URL $PROD_ZIPFILE $PROD_SHA256 $PROD_VERSION
 
 
 if [ ! -e "shibboleth-idp-distribution/messages/messages_de.properties" ]; then
