@@ -21,13 +21,13 @@ main() {
 
 
 set_volume_root() {
-    DOCKERVOL_ROOT='/dv'
-    DOCKERLOG_ROOT='/dl'
+    DOCKERVOL_SHORT='/dv'
+    DOCKERLOG_SHORT='/dl'
     if [ "$TRAVIS" == "true" ]; then
-        DOCKERVOL_ROOT='./dv';
-        DOCKERLOG_ROOT='./dl';
+        DOCKERVOL_SHORT='./dv';
+        DOCKERLOG_SHORT='./dl';
     fi
-    SHAREDDATA_ROOT="${DOCKERVOL_ROOT}/01shared_data"    # data shared between containers
+    DOCKER_VOLUME_ROOT='/var/lib/docker/volumes'  # hard coded - check for your config if applicable!
 }
 
 
@@ -36,8 +36,12 @@ set_image_and_container_name() {
     # processes on the docker host etc.
     IMGID='07'  # range from 02 .. 99; must be unique per node
     PROJSHORT='idp1exampleorg'
-    export IMAGENAME="r2h2/$PROJSHORT${IMGID}"
-    export CONTAINERNAME="${IMGID}$PROJSHORT"
+    #set_staging_env
+    export IMAGENAME="r2h2/${PROJSHORT}"  # you may or may not want to have an image id and/or staging tag
+    #export IMAGENAME="r2h2/${PROJSHORT}${IMGID}:${STAGING_ENV}"  # [a-z_0-9]
+    export CONTAINERNAME="${IMGID}${PROJSHORT}"
+    #export CONTAINERNAME="${IMGID}${PROJSHORT}-${STAGING_ENV}"
+    export DOCKER_REGISTRY='index.docker.io'
 }
 
 
@@ -64,6 +68,7 @@ set_run_args() {
         -e IDP_FQDN=idp1.example.org
         -e KEYSTOREPW=changeit
     "
+    get_capabilities
     export STARTCMD='/start.sh'  # unset or blank to use image default
 }
 
@@ -80,7 +85,6 @@ set_network() {
     export NETWORKSETTINGS="
         --net $NETWORK
         --ip 10.1.1.${IMGID}
-        -p 8443:8443
     "
 }
 
@@ -90,13 +94,12 @@ set_vol_mapping() {
 
     MDFEED_DIR="$SHAREDDATA_ROOT/03pyfftestwpv/md_feed"
 
-    VOLROOT="${DOCKERVOL_ROOT}/$CONTAINERNAME"  # container volumes on docker host
-    map_docker_volume "${CONTAINERNAME}.etc.pki.shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_ROOT
-    map_docker_volume "${CONTAINERNAME}.opt.jetty-base" '/opt/jetty-base/' 'rw' $DOCKERVOL_ROOT
-    map_docker_volume "${CONTAINERNAME}.opt.shibboleth-idp" '/opt/shibboleth-idp/' 'rw' $DOCKERVOL_ROOT
-    map_docker_volume "${CONTAINERNAME}.var.log" '/var/log/' 'rw' $DOCKERLOG_ROOT
-
-    map_host_directory "$MDFEED_DIR" '/opt/md_feed' 'ro'
+    VOLROOT="${DOCKERVOL_SHORT}/$CONTAINERNAME"  # container volumes on docker host
+    map_docker_volume "${CONTAINERNAME}.etc.pki.shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_SHORT
+    map_docker_volume "${CONTAINERNAME}.opt.jetty-base" '/opt/jetty-base/' 'rw' $DOCKERVOL_SHORT
+    map_docker_volume "${CONTAINERNAME}.opt.shibboleth-idp" '/opt/shibboleth-idp/' 'rw' $DOCKERVOL_SHORT
+    map_docker_volume "${CONTAINERNAME}.var.log" '/var/log/' 'rw' $DOCKERLOG_SHORT
+	chown -R $CONTAINERUSER:$CONTAINERUSER $DOCKER_VOLUME_ROOT/${CONTAINERNAME}.*
 }
 
 
