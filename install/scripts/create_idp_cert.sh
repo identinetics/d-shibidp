@@ -4,7 +4,7 @@
 
 cd /opt/shibboleth-idp/credentials
 
-sudo java -cp "../webapp/WEB-INF/lib/*:../bin/lib/*" \
+java -cp "../webapp/WEB-INF/lib/*:../bin/lib/*" \
   net.shibboleth.utilities.java.support.security.SelfSignedCertificateGenerator \
   --lifetime 5 \
   --certfile idp.crt.new \
