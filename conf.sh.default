@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e -o pipefail
 
 # settings for docker build, run and exec
 
@@ -48,8 +49,6 @@ set_image_and_container_name() {
 set_users() {
     export CONTAINERUSER="$PROJSHORT${IMGID}"   # group and user to run container
     export CONTAINERUID="3430${IMGID}"     # gid and uid for CONTAINERUSER
-    export SHARED_CONTAINERS_GROUP="sharedcont"   # group shared by other containers
-    export SHARED_CONTAINERS_GROUPID="8000"
     export START_AS_ROOT=      # 'True' (e.g. for apache to fall back to www user)
 }
 
@@ -63,10 +62,12 @@ set_buildargs() {
 
 
 set_run_args() {
+    # configure passwords in idp.properties as well!
     export ENVSETTINGS="
         -e ENTITYID=https://idp1.example.org/idp.xml
         -e IDP_FQDN=idp1.example.org
         -e KEYSTOREPW=changeit
+        -e idp_sealer_storePassword=changeit
     "
     get_capabilities
     export STARTCMD='/start.sh'  # unset or blank to use image default
@@ -97,6 +98,7 @@ set_vol_mapping() {
     VOLROOT="${DOCKERVOL_SHORT}/$CONTAINERNAME"  # container volumes on docker host
     map_docker_volume "${CONTAINERNAME}.etc.pki.shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_SHORT
     map_docker_volume "${CONTAINERNAME}.opt.jetty-base" '/opt/jetty-base/' 'rw' $DOCKERVOL_SHORT
+    map_docker_volume '03pyff.var_md_feed' '/opt/md_feed' 'ro' $DOCKERVOL_SHORT
     map_docker_volume "${CONTAINERNAME}.opt.shibboleth-idp" '/opt/shibboleth-idp/' 'rw' $DOCKERVOL_SHORT
     map_docker_volume "${CONTAINERNAME}.var.log" '/var/log/' 'rw' $DOCKERLOG_SHORT
 	chown -R $CONTAINERUSER:$CONTAINERUSER $DOCKER_VOLUME_ROOT/${CONTAINERNAME}.*
