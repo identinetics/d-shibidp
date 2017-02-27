@@ -66,7 +66,7 @@ set_run_args() {
     export ENVSETTINGS="
         -e ENTITYID=https://idp1.example.org/idp.xml
         -e IDP_FQDN=idp1.example.org
-        -e KEYSTOREPW=changeit
+        -e KEYSTOREPW=none
         -e idp_sealer_storePassword=changeit
     "
     get_capabilities
