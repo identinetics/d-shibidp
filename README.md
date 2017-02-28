@@ -44,6 +44,12 @@ running on the latest CentOS 7 base.
     # To effect changed to the idp.war file:
     dscripts/run.sh -ip /rebuild_idp_war.sh
 
+## Other Entrypoints
+
+    /create_idp_cert.sh   # create a new singing and/or encryption certificate
+    /seckey_init.sh       # create a new data sealer keystore (e.g. after copying config form other deployment)
+    /seckey_refresh.sh    # call daily to create a new data sealer key 
+
 ## References
 
 * https://github.com/rhoerbe/docker-template

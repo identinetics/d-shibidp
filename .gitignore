@@ -1,7 +1,6 @@
 .DS_Store
 .idea
 
-build_prepare.sh
 conf*.sh
 
 install

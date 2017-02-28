@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e -o pipefail
 
 # Create an X.509 cert to be used for signing and/or encrpytion
 
@@ -12,3 +13,4 @@ java -cp "../webapp/WEB-INF/lib/*:../bin/lib/*" \
   --hostname $IDP_FQDN \
   --uriAltName $ENTITYID
 
+chmod 600 idp.key.new
