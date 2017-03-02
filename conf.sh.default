@@ -96,11 +96,14 @@ set_vol_mapping() {
     MDFEED_DIR="$SHAREDDATA_ROOT/03pyfftestwpv/md_feed"
 
     VOLROOT="${DOCKERVOL_SHORT}/$CONTAINERNAME"  # container volumes on docker host
-    map_docker_volume "${CONTAINERNAME}.etc.pki.shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_SHORT
-    map_docker_volume "${CONTAINERNAME}.opt.jetty-base" '/opt/jetty-base/' 'rw' $DOCKERVOL_SHORT
+    map_docker_volume "${CONTAINERNAME}.etc_pki_shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_SHORT
+    map_docker_volume "${CONTAINERNAME}.opt_jetty-base" '/opt/jetty-base/' 'rw' $DOCKERVOL_SHORT
     map_docker_volume '03pyff.var_md_feed' '/opt/md_feed' 'ro' $DOCKERVOL_SHORT
-    map_docker_volume "${CONTAINERNAME}.opt.shibboleth-idp" '/opt/shibboleth-idp/' 'rw' $DOCKERVOL_SHORT
-    map_docker_volume "${CONTAINERNAME}.var.log" '/var/log/' 'rw' $DOCKERLOG_SHORT
+    map_docker_volume "${CONTAINERNAME}.opt_shibboleth-idp" '/opt/shibboleth-idp/' 'rw' $DOCKERVOL_SHORT
+    map_docker_volume "${CONTAINERNAME}.var_log" '/var/log/' 'rw' $DOCKERLOG_SHORT
+
+	mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty
+	mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp
 	chown -R $CONTAINERUSER:$CONTAINERUSER $DOCKER_VOLUME_ROOT/${CONTAINERNAME}.*
 }
 

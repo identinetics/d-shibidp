@@ -13,6 +13,9 @@ ENV JAVA_HOME=/opt/jre1.8.0
 ENV PATH=$PATH:$JAVA_HOME/bin:/opt/scripts
 RUN echo "export JAVA_HOME=$JAVA_HOME" >> /root/.bashrc \
  && echo "export PATH=$PATH:$JAVA_HOME/bin:/opt/scripts" >> /root/.bashrc
+# Avoiding JVM delays caused by random number generation (remove if HWRNG or haveged is available)
+RUN sed -i -e 's|securerandom.source=file:/dev/random|securerandom.source=file:/dev/urandom|' \
+    $JAVA_HOME/lib/security/java.security
 
 # Jetty
 COPY install/downloads/jetty /opt/jetty
