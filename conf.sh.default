@@ -106,9 +106,29 @@ set_vol_mapping() {
 	mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty
 	mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp
 	chown -R $CONTAINERUSER:$CONTAINERUSER $DOCKER_VOLUME_ROOT/${CONTAINERNAME}.*
+
+    export LOGFILES="
+        tail -f DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp/idp-process.log
+        tail -f DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp/idp-warn.log
+        tail -f DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty/access.log
+        tail -f DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty/jetty.log
+    "
 }
 
 
+container_status() {
+    $sudo docker ps | head -1
+    $sudo docker ps --all | egrep $CONTAINERNAME\$
+    $sudo docker exec $CONTAINERNAME /status.sh
+}
+
+
+logrotate() {
+    keep_files_days=10
+    echo "remove files after ${keep_files_days} (rotation done by jetty & shib)"
+    find $DOCKERLOG_SHORT/${CONTAINERNAME}.var.log/idp/ -mtime +${keep_files_days} -exec rm {} \;
+    find $DOCKERLOG_SHORT/${CONTAINERNAME}.var.log/jetty/ -mtime +${keep_files_days} -exec rm {} \;
+}
 
 
 main
