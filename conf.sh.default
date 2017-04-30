@@ -91,9 +91,10 @@ set_network() {
 
 
 set_vol_mapping() {
+    VOLMAPPING=''
     create_user $CONTAINERUSER $CONTAINERUID
 
-    MDFEED_DIR="$SHAREDDATA_ROOT/03pyfftestwpv/md_feed"
+    MDFEED_DIR="$SHAREDDATA_ROOT/03pyff/md_feed"
 
     VOLROOT="${DOCKERVOL_SHORT}/$CONTAINERNAME"  # container volumes on docker host
     map_docker_volume "${CONTAINERNAME}.etc_pki_shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_SHORT

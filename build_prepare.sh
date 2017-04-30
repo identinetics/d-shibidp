@@ -8,21 +8,15 @@ update_pkg="False"
 
 while getopts ":huU" opt; do
   case $opt in
-    u)
-      update_pkg="True"
-      ;;
-    U)
-      update_pkg="False"
-      ;;
-    *)
-      echo "usage: $0 [-u] [-U]
-   -u  update git repos in docker build context
-   -U  do not update git repos in docker build context (default)
+    u) echo "-u is not supported. Please delete the respective files you need to update and restart" && \
+       exit 1;;
+    U) update_pkg="False";;
+    *) echo "usage: $0 [-u] [-U]
+       -u  update git repos in docker build context
+       -U  do not update git repos in docker build context (default)
 
-   To update packages delivered as tar-balls just delete them from install/opt
-   "
-      exit 0
-      ;;
+       To update packages delivered as tar-balls just delete them from install/opt
+       " && exit 0;;
   esac
 done
 
@@ -84,9 +78,9 @@ if [ ! -e "jetty" ]; then
 fi
 
 # Download Shibboleth IDP
-PROD_VERSION='3.3.0'
+PROD_VERSION='3.3.1'
 PROD_URL="https://shibboleth.net/downloads/identity-provider/latest/shibboleth-identity-provider-$PROD_VERSION.zip"
-PROD_SHA256='a0dd96ad8770539b6f1249f7cea98b944cff846b4831892e8deee62b91b60277'
+PROD_SHA256='99f944c7fc8e0037385b6516b5a384b2ae3b3b5516e3843a6b2b7839c7c7182a'
 PROD_ZIPFILE="shibboleth-identity-provider-$PROD_VERSION.zip"
 PROD_INSTDIR='shibboleth-idp-distribution'
 get_from_ziparchive_with_checksum $PROD_URL $PROD_ZIPFILE $PROD_SHA256 $PROD_VERSION

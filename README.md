@@ -50,6 +50,12 @@ running on the latest CentOS 7 base.
     /seckey_init.sh       # create a new data sealer keystore (e.g. after copying config form other deployment)
     /seckey_refresh.sh    # call daily to create a new data sealer key 
 
+## Upgrade to new version of Shibboleth, Jetty and/or Oracle JRE
+
+* Update prepare_build.sh
+* Delete the respective files and folders in install/downloads
+* run `dscripts/build.sh`
+
 ## References
 
 * https://github.com/rhoerbe/docker-template

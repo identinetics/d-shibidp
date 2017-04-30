@@ -1,7 +1,7 @@
 FROM centos:centos7
 LABEL maintainer="Rainer Hörbe <r2h2@hoerbe.at>" \
       version="0.4.0" \
-      capabilites='--cap-drop=all'
+      capabilities='--cap-drop=all'
 
 RUN yum -y update \
  && yum -y install curl iproute lsof net-tools openssl tar unzip which wget \
