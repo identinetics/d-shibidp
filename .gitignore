@@ -5,3 +5,4 @@ conf*.sh
 
 install
 !install/scripts
+!install/scripts/*
