@@ -1,6 +1,6 @@
 FROM centos:centos7
 LABEL maintainer="Rainer Hörbe <r2h2@hoerbe.at>" \
-      version="0.5.0" \
+      version="0.5.1" \
       capabilities='--cap-drop=all --cap-add=net_raw'
 
 RUN yum -y update \
@@ -32,9 +32,6 @@ RUN mkdir -p /opt/shibboleth-idp-distribution/edit-webapp/WEB-INF/lib \
 
 COPY install/scripts/*.sh /
 RUN chmod -R +x /*.sh
-# 8443 (browser TLS), 9443 SOAP, 8080 (no TLS)
-# do not expose ports, but use proxy for 8080 instead
-# EXPOSE 8443 9443
 CMD ["/start.sh"]
 
 ARG USERNAME=jetty
@@ -51,3 +48,5 @@ VOLUME /etc/pki/shib-idp \
        /opt/jetty-base \
        /opt/shibboleth-idp \
        /var/log
+       
+EXPOSE 8080

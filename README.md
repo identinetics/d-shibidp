@@ -43,6 +43,9 @@ running on the latest CentOS 7 base.
  
     # To effect changed to the idp.war file:
     dscripts/run.sh -ip /rebuild_idp_war.sh
+    
+    # test attribute release for user 'eid-test'
+    curl 'http://localhost:8080/idp/profile/admin/resolvertest?principal=eid-test&requester=https%3A%2F%2Fsp.example.org%2Fsp'
 
 ## Other Entrypoints
 
