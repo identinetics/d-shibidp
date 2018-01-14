@@ -1,68 +1,72 @@
 #!/usr/bin/env bash
-set -e -o pipefail
-
-# settings for docker build, run and exec
 
 main() {
     SCRIPTDIR=$(cd $(dirname $BASH_SOURCE[0]) && pwd)
-    source $SCRIPTDIR/dscripts/conf_lib.sh  # load library functions
-
+    source $SCRIPTDIR/dscripts/conf_lib.sh  $@         # load library functions
+    configlib_version=2  # compatible version of conf_lib.sh
+    check_version $configlib_version
+    # do_not_build $@ # uncomment this line to pull/load image
     init_sudo
-    set_volume_root
-    set_image_and_container_name
-    set_users
-    set_buildargs
-    set_run_args
-    set_network
-    set_vol_mapping
+    _set_volume_root
+    _set_image_and_container_name
+    #_set_image_signature_args
+    _set_users
+    _set_buildargs
+    _set_run_args
+    #_set_logfiles
     #enable_x11_client
     #enable_pkcs11
     #set_enable_sshd     # usually used only for debugging - requires installed sshd in image
 }
 
 
-set_volume_root() {
-    DOCKERVOL_SHORT='/dv'
-    DOCKERLOG_SHORT='/dl'
-    if [ "$TRAVIS" == "true" ]; then
-        DOCKERVOL_SHORT='./dv';
-        DOCKERLOG_SHORT='./dl';
-    fi
+_set_volume_root() {
+    # DOCKERVOL_SHORT and DOCKERLOG_SHORT are used as
+    #  (1) root dirs for volume mappings to the file system, and
+    #  (2) as dirs to contain symlinks to docker volumes
+    DOCKERVOL_SHORT='./dv'
+    DOCKERLOG_SHORT='./dl'
+    mkdir -p $DOCKERVOL_SHORT $DOCKERLOG_SHORT
     DOCKER_VOLUME_ROOT='/var/lib/docker/volumes'  # hard coded - check for your config if applicable!
+    #DOCKER_VOL_LOG_SYMLINKS_DISABLE='True'  # unset or empty to skip symlink creation
 }
 
 
-set_image_and_container_name() {
-    # This IMGID qualifies image, container, user and IP adddress; this is helpful for managing
+_set_image_and_container_name() {
+    # IMGID qualifies image, container, user and IP adddress; this is helpful for managing
     # processes on the docker host etc.
     IMGID='07'  # range from 02 .. 99; must be unique per node
-    PROJSHORT='idp1exampleorg'
+    PROJSHORT='shibidp'
     SERVICEDESCRIPTION=idp.example.org  # no blanks!
-    #set_staging_env
     export IMAGENAME="r2h2/${PROJSHORT}"  # you may or may not want to have an image id and/or staging tag
     #export IMAGENAME="r2h2/${PROJSHORT}${IMGID}:${STAGING_ENV}"  # [a-z_0-9]
     export CONTAINERNAME="${IMGID}${PROJSHORT}"
     #export CONTAINERNAME="${IMGID}${PROJSHORT}-${STAGING_ENV}"
-    export DOCKER_REGISTRY='index.docker.io'
+    export DOCKER_REGISTRY=''  # blank for index.docker.io
 }
 
 
-set_users() {
+_set_users() {
     export CONTAINERUSER="$PROJSHORT${IMGID}"   # group and user to run container
     export CONTAINERUID="3430${IMGID}"     # gid and uid for CONTAINERUSER
     export START_AS_ROOT=      # 'True' (e.g. for apache to fall back to www user)
 }
 
 
-set_buildargs() {
+_set_buildargs() {
     export BUILDARGS="
         --build-arg USERNAME=$CONTAINERUSER
         --build-arg UID=$CONTAINERUID
     "
+    #export DOCKERFILE_DIR=  # set this if the Dockerfile is not in the directory containing the dscripts submodule
+    #export DSCRIPTS_DOCKERFILE='Dockerfile.rhel'   # defaults to 'Dockerfile' if unset or empty
+    export REPO_STATUS='True'  # if set: generate 'REPO_STATUS' file to be included in docker image at /opt/etc/
+    #export SET_BUILDINFO='True'   # if set add label BUILDINFO to image (better be set in CI-pipeline)
 }
 
 
 set_run_args() {
+    LOGPURGEFILES='/var/log/jetty/* /var/log/idp/*'
     # configure passwords in idp.properties as well!
     export ENVSETTINGS="
         -e ENTITYID=https://idp1.example.org/idp.xml
@@ -70,42 +74,50 @@ set_run_args() {
         -e KEYSTOREPW=none
         -e idp_sealer_storePassword=changeit
     "
-    get_capabilities
-    export STARTCMD='/start.sh'  # unset or blank to use image default
+    export STARTCMD=''  # set to override image default
 }
 
 
-set_network() {
-    # The docker0 bridge has dynamic addresses, whereas a custom bridge allows predictable addresses
-    NETWORK=dockernet
+create_intercontainer_network() {
+    # Create a local network on the docker host. As the default docker0 bridge has dynamic
+    # addresses, a custom bridge is created allowing predictable addresses.
+    network='dockernet'
     set +e  # errexit off
-    $sudo docker network ls | awk '{print $2}' | grep $NETWORK > /dev/null
+    $sudo docker network ls | awk '{print $2}' | grep $network > /dev/null
     if (( $? == 1)); then
         $sudo docker network create --driver bridge --subnet=10.1.1.0/24 \
-                  -o com.docker.network.bridge.name=br-$NETWORK $NETWORK
+                  -o com.docker.network.bridge.name=br-$network $network
     fi
     export NETWORKSETTINGS="
-        --net $NETWORK
+        --net $network
         --ip 10.1.1.${IMGID}
     "
 }
 
 
-set_vol_mapping() {
-    VOLMAPPING=''
+setup_vol_mapping() {
+    # Create docker volume (-> map_docker_volume) or map a host dir (-> map_host_directory)
+    # In both cases create a shortcut in the shortcut directory (DOCKERVOL_SHORT, DOCKERLOG_SHORT)
+    mode=$1  # create (used by run.sh)/list (used by manage.sh)
+    export VOLLIST=''
+    export VOLMAPPING=''
+    # create container user on docker host (optional - for better process visibility with host tools)
     create_user $CONTAINERUSER $CONTAINERUID
 
-    map_docker_volume "${CONTAINERNAME}.etc_pki_shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_SHORT
-    map_docker_volume "${CONTAINERNAME}.opt_jetty-base" '/opt/jetty-base/' 'rw' $DOCKERVOL_SHORT
-    map_docker_volume "${CONTAINERNAME}.opt_shibboleth-idp" '/opt/shibboleth-idp/' 'rw' $DOCKERVOL_SHORT
-    map_docker_volume "${CONTAINERNAME}.var_log" '/var/log/' 'rw' $DOCKERLOG_SHORT
-    # map_docker_volume '03pyff.var_md_feed' '/opt/md_feed' 'ro' $DOCKERVOL_SHORT  # for local mdfeed $only
+    map_docker_volume $mode "${CONTAINERNAME}.etc_pki_shib-idp" '/etc/pki/shib-idp/' 'ro' $DOCKERVOL_SHORT
+    map_docker_volume $mode "${CONTAINERNAME}.opt_jetty-base" '/opt/jetty-base/' 'rw' $DOCKERVOL_SHORT
+    map_docker_volume $mode "${CONTAINERNAME}.opt_shibboleth-idp" '/opt/shibboleth-idp/' 'rw' $DOCKERVOL_SHORT
+    map_docker_volume $mode "${CONTAINERNAME}.var_log" '/var/log/' 'rw' $DOCKERLOG_SHORT
+    # map_docker_volume $mode '03pyff.var_md_feed' '/opt/md_feed' 'ro' $DOCKERVOL_SHORT  # for local mdfeed $only
 
-	$sudo mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty
-	$sudo mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp
-	$sudo chown -R $CONTAINERUSER:$CONTAINERUSER $DOCKER_VOLUME_ROOT/${CONTAINERNAME}.*
+    $sudo mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty
+    $sudo mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp
+    $sudo chown -R $CONTAINERUSER:$CONTAINERUSER $DOCKER_VOLUME_ROOT/${CONTAINERNAME}.*
 
-    export LOGFILES="
+
+
+_set_logfiles() {  # optional: set this for multitail + logfiles subcommands in manage.sh
+    export KNOWN_LOGFILES="
         $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp/idp-process.log
         $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp/idp-warn.log
         $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty/access.log
@@ -117,7 +129,7 @@ set_vol_mapping() {
 container_status() {
     $sudo docker ps | head -1
     $sudo docker ps --all | egrep $CONTAINERNAME\$
-    $sudo docker exec $CONTAINERNAME /status.sh
+    #$sudo docker exec -it $CONTAINERNAME /scripts/status.sh
 }
 
 
@@ -129,4 +141,4 @@ logrotate() {
 }
 
 
-main
+main $@

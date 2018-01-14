@@ -50,3 +50,4 @@ VOLUME /etc/pki/shib-idp \
        /var/log
        
 EXPOSE 8080
+USER $USERNAME
