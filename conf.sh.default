@@ -9,14 +9,9 @@ main() {
     init_sudo
     _set_volume_root
     _set_image_and_container_name
-    #_set_image_signature_args
     _set_users
     _set_buildargs
     _set_run_args
-    #_set_logfiles
-    #enable_x11_client
-    #enable_pkcs11
-    #set_enable_sshd     # usually used only for debugging - requires installed sshd in image
 }
 
 
@@ -65,7 +60,7 @@ _set_buildargs() {
 }
 
 
-set_run_args() {
+_set_run_args() {
     LOGPURGEFILES='/var/log/jetty/* /var/log/idp/*'
     # configure passwords in idp.properties as well!
     export ENVSETTINGS="
@@ -113,7 +108,7 @@ setup_vol_mapping() {
     $sudo mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/jetty
     $sudo mkdir -p $DOCKERLOG_SHORT/${CONTAINERNAME}.var_log/idp
     $sudo chown -R $CONTAINERUSER:$CONTAINERUSER $DOCKER_VOLUME_ROOT/${CONTAINERNAME}.*
-
+}
 
 
 _set_logfiles() {  # optional: set this for multitail + logfiles subcommands in manage.sh
