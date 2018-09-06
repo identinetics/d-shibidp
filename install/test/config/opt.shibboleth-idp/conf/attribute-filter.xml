@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+2016-03-09 10:52  WPV Standard Attribute Bundle (incomplete)
+-->
+
+<AttributeFilterPolicyGroup id="ShibbolethFilterPolicy" 
+        xmlns="urn:mace:shibboleth:2.0:afp" 
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:mace:shibboleth:2.0:afp http://shibboleth.net/schema/idp/shibboleth-afp.xsd">
+
+    <AttributeFilterPolicy id="releaseToAnyPeer">
+        <PolicyRequirementRule xsi:type="ANY"/>
+        <!--
+        <AttributeRule attributeID="transientId">               <PermitValueRule xsi:type="ANY"/>  </AttributeRule>
+        <AttributeRule attributeID="persistentId">              <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        -->
+
+        <AttributeRule attributeID="cn">                        <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="country">                   <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="displayName">               <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="gender">                    <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="gid">                       <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="gln">                       <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="givenName">                 <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="localityName">              <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="mail">                      <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="organizationName">          <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="orgSourcePin">              <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="postalAddress">             <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="postalCode">                <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="postOfficeBox">             <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="preferredLanguage">         <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="rights">                    <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="street">                    <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="surname">                   <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="telephoneNumber">           <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="title">                     <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="uid">                       <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="wbpkHash">                  <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="wpv-AuthenticationClass">   <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="wpv-RegistrationClassOrg">  <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="wpv-RegistrationClassUser"> <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+        <AttributeRule attributeID="WKIS-Redirect">             <PermitValueRule xsi:type="ANY" /> </AttributeRule>
+
+    </AttributeFilterPolicy>
+    
+</AttributeFilterPolicyGroup>

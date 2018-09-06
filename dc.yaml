@@ -1,0 +1,34 @@
+version: "2"
+services:
+  shibidp:
+    build:
+      context: .
+    image: r2h2/shibidp
+    container_name: shibidp
+    hostname: shibidp
+    labels:
+      x.service: idp.example.org
+    restart: unless-stopped
+    environment:
+      CONTAINERUSER: shibidp
+    networks:
+      dockernet:
+        ipv4_address: 10.1.1.7
+    volumes:
+        - shibidp.etc_pki_shib-idp:/etc/pki/shib-idp/:Z
+        - shibidp.opt_jetty-base:/opt/jetty-base/:Z
+        - shibidp.opt_shibboleth-idp:/opt/shibboleth-idp/:Z
+        - shibidp.var_log:/var/log/:Z
+    cap_drop:
+      - ALL
+    cap_add:
+      - net_raw
+networks:
+  dockernet:
+    external: true
+volumes:
+    shibidp.etc_pki_shib-idp:
+    shibidp.opt_jetty-base:
+    shibidp.opt_shibboleth-idp:
+    shibidp.var_log:
+

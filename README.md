@@ -1,32 +1,18 @@
 # Shibboleth IDP V3 docker image
 
 ## Overview 
-This Docker image contains a deployed Shibboleth IdP 3 running on Java Runtime 1.8 and Jetty 9.3.3 
-running on the latest CentOS 7 base.
+This Docker image contains a deployed Shibboleth IdP 3 running on Java 8 JRE  and Jetty 9.3.3 
+running on the latest CentOS 7 base. Buld + run with docker-compose
 
-- Following the recommendations of the shibboleth.net wiki
-- Docker project structure conforming to rhoerbe/docker-template (matching host with guest uids, ..)
-- No configuration data inside the container (but via conf*.sh)
-- Software components are downloaded before the build step in conf.sh (e.g. to change to an 
-  internal repo) - except some utilities from centos repo
-- Shib-idp installation happens past image building
-- Volume mount points for config, logs etc. are in standard locations
-- This image is not being used for production (yet)
-
-
-## Build the docker image
-1. copy conf.sh.default to conf.sh (or confN.sh, where n is the container number)
-2. adopt conf*.sh
-3. run dscripts/build.sh  # this will also create the host directories to be munted in the container
 
 
 ## Configure & run
  
-    dscripts/run.sh -h  # print usage
+    
     
     # run the IDP's install script (keep the defaults for the source and installation directories)
     # this will throw away the container, but the config files are kept on the docker host
-    dscripts/run.sh -i /opt/scripts/install_idp.sh  
+    docker-compose -f dc.yaml run --rm /opt/scripts/install_idp.sh  
 
     # now configure /opt/jetty-base and /etc/shibboleth-idp
     . use idp.home/metadata/idp-metadata.xml to create a reasonable metadata file and upload it to the metadata feed
@@ -39,25 +25,24 @@ running on the latest CentOS 7 base.
     . optionally copy jstl-1.2.jar to /opt/shibboleth-idp/edit-webapp/WEB-INF/lib (-> for idp/status page)
 
     # start jetty
-    dscripts/run.sh     
+    docker-compose -f dc.yaml run --rm shibidp bash 
  
-    # To effect changed to the idp.war file:
-    dscripts/run.sh -ip /rebuild_idp_war.sh
+    # To effect changes to the idp.war file:
+    docker-compose -f dc.yaml run --rm shibidp /scripts/rebuild_idp_war.sh
     
     # test attribute release for user 'eid-test'
     curl 'http://localhost:8080/idp/profile/admin/resolvertest?principal=eid-test&requester=https%3A%2F%2Fsp.example.org%2Fsp'
 
 ## Other Entrypoints
 
-    /create_idp_cert.sh   # create a new singing and/or encryption certificate
-    /seckey_init.sh       # create a new data sealer keystore (e.g. after copying config form other deployment)
-    /seckey_refresh.sh    # call daily to create a new data sealer key 
+    /scripts/create_idp_cert.sh   # create a new singing and/or encryption certificate
+    /scripts/seckey_init.sh       # create a new data sealer keystore (e.g. after copying config form other deployment)
+    /scripts/seckey_refresh.sh    # call daily to create a new data sealer key 
 
 ## Upgrade to new version of Shibboleth, Jetty and/or Oracle JRE
 
-* Update prepare_build.sh
-* Delete the respective files and folders in install/downloads
-* run `dscripts/build.sh`
+* Update Dockerfile Oracle Java ENV variables
+* build
 
 ## References
 

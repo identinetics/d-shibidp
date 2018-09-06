@@ -1,0 +1,134 @@
+##
+## Velocity Template for DisplayUsernamePasswordPage view-state
+##
+## Velocity context will contain the following properties
+## flowExecutionUrl - the form action location
+## flowRequestContext - the Spring Web Flow RequestContext
+## flowExecutionKey - the SWF execution key (this is built into the flowExecutionUrl)
+## profileRequestContext - root of context tree
+## authenticationContext - context with authentication request information
+## authenticationErrorContext - context with login error state
+## authenticationWarningContext - context with login warning state
+## ldapResponseContext - context with LDAP state (if using native LDAP)
+## rpUIContext - the context with SP UI information from the metadata
+## extendedAuthenticationFlows - collection of "extended" AuthenticationFlowDescriptor objects
+## passwordPrincipals - contents of the shibboleth.authn.Password.PrincipalOverride bean
+## encoder - HTMLEncoder class
+## request - HttpServletRequest
+## response - HttpServletResponse
+## environment - Spring Environment object for property resolution
+## custom - arbitrary object injected by deployer
+##
+#set ($rpContext = $profileRequestContext.getSubcontext('net.shibboleth.idp.profile.context.RelyingPartyContext'))
+#set ($username = $authenticationContext.getSubcontext('net.shibboleth.idp.authn.context.UsernamePasswordContext', true).getUsername())
+#set ($passwordEnabled = false)
+#if (!$passwordPrincipals or $passwordPrincipals.isEmpty() or $authenticationContext.isAcceptable($passwordPrincipals))
+  #set ($passwordEnabled = true)
+#end
+##
+<!DOCTYPE html>
+<html>
+  	<head>
+    	<meta charset="utf-8">
+    	<title>#springMessageText("idp.title", "Web Login Service")</title>
+    	<link rel="stylesheet" type="text/css" href="$request.getContextPath()/css/main.css">
+  	</head>
+  	<body>
+    <div class="wrapper">
+      <div class="container">
+        <header>
+        </header>
+
+        <div class="content">
+          <div class="column one">
+            <img src="$request.getContextPath()#springMessage("idp.logo")" 
+                 alt="#springMessageText("idp.logo.alt-text", "logo")" ">
+
+            #parse("login-error.vm")
+
+            <form action="$flowExecutionUrl" method="post">
+
+            #set ($serviceName = $rpUIContext.serviceName)
+            #if ($serviceName && !$rpContext.getRelyingPartyId().contains($serviceName))
+              <legend>
+                WPV Anmeldung
+              </legend>
+            #end
+                        
+            #if ($passwordEnabled)
+              <div class="form-element-wrapper">
+                <input class="form-element form-field" id="username" name="j_username" type="text" placeholder="Benutzername" value="#if($username)$encoder.encodeForHTML($username)#end">
+              </div>
+
+              <div class="form-element-wrapper">
+                <input class="form-element form-field" id="password" name="j_password" type="password" placeholder="Passwort" value="">
+              </div>
+            #end
+
+            #if ($passwordEnabled)
+              <div class="form-element-wrapper">
+                <button class="form-element form-button" type="submit" name="_eventId_proceed"
+                    onClick="this.childNodes[0].nodeValue='Anmeldung läuft, bitte warten'"
+                    >Anmelden</button>
+              </div>
+            #end
+
+            #foreach ($extFlow in $extendedAuthenticationFlows)
+              #if ($authenticationContext.isAcceptable($extFlow) and $extFlow.apply(profileRequestContext))
+                <div class="form-element-wrapper">
+                  <button class="form-element form-button" type="submit" name="_eventId_$extFlow.getId()">
+                    #springMessageText("idp.login.$extFlow.getId().replace('authn/','')", $extFlow.getId().replace('authn/',''))
+                  </button>
+                </div>
+              #end
+            #end
+            </form>
+
+            
+          </div>
+          <!--legend>
+            <a href="https://service.edushare.at/secure/wsgi/pwchanger.wsgi/change.html" id="pwchange-link" onClick="setCookie('pwchange', 'yes', 1);">
+            	Passwort ändern (das folgende Login-Formular mit "Anmelden" bestätigen)
+            </a>
+          </legend-->
+          <div class="column two"></div>
+        </div>
+      </div>
+
+	    </div>
+   
+
+      <script type="text/javascript">
+      function setCookie(cname, cvalue, exdays) {
+         var d = new Date();
+         d.setTime(d.getTime() + (exdays*30*60*1000));
+         var expires = "expires="+ d.toUTCString();
+         document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+      }
+
+      function getCookie(cname) {
+          var name = cname + "=";
+          var decodedCookie = decodeURIComponent(document.cookie);
+          var ca = decodedCookie.split(';');
+          for(var i = 0; i <ca.length; i++) {
+              var c = ca[i];
+              while (c.charAt(0) == ' ') {
+                  c = c.substring(1);
+              }
+              if (c.indexOf(name) == 0) {
+                  return c.substring(name.length, c.length);
+              }
+          }
+          return "";
+      }
+
+
+      if(getCookie('pwchange') === "yes"){
+        document.getElementById('pwchange-link').style.display = 'none';
+        document.cookie='pwchange=;expires=Wed; 01 Jan 1970';
+      }
+      </script>
+ 
+ 	</body>
+</html>
+
