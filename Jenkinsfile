@@ -33,11 +33,11 @@ pipeline {
         stage('Run') {
             steps {
                 sh '''
-                    docker-compose -f dc.yaml up -d shibidp
-                    sleep 8
+                    docker-compose -f dc.yaml up --no-start
                     docker cp install/test/config/etc.pki.shib-idp shibidp:/etc/pki/shib-idp
                     docker cp install/test/config/opt.jetty-base shibidp:/opt/jetty-base
                     docker cp install/test/config/opt-shibboleth-idp shibidp:/opt/shibboleth-idp
+                    docker-compose -f dc.yaml down
                     docker-compose -f dc.yaml exec -T shibidp /scripts/status.sh
                 '''
             }
