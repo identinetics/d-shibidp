@@ -32,13 +32,18 @@ pipeline {
         }
         stage('Run') {
             steps {
-                sh '''
-                    docker-compose -f dc.yaml up --no-start
-                    docker cp install/test/config/etc.pki.shib-idp shibidp:/etc/pki/shib-idp
-                    docker cp install/test/config/opt.jetty-base shibidp:/opt/jetty-base
-                    docker cp install/test/config/opt-shibboleth-idp shibidp:/opt/shibboleth-idp
-                    docker-compose -f dc.yaml down
+                sh '''#!/bin/bash -xv
+                    # docker-compose -f dc.yaml up --no-start  ## future docker version
+                    docker-compose -f dc.yaml run --rm --name shibidp_init shibidp tail -f /dev/null &
+                    echo 'initializing config to persistent volumes'
+                    sleep 2
+                    docker cp install/test/config/etc/pki/shib-idp shibidp_init:/etc/pki/
+                    docker cp install/test/config/opt/jetty-base shibidp_init:/opt/
+                    docker cp install/test/config/opt/shibboleth-idp shibidp_init:/opt/
+                    docker rm -f shibidp_init
+                    docker-compose -f dc.yaml up -d
                     docker-compose -f dc.yaml exec -T shibidp /scripts/status.sh
+                    docker-compose -f dc.yaml logs shibidp
                 '''
             }
         }
