@@ -25,6 +25,7 @@ pipeline {
                     [[ "$nocache" ]] && nocacheopt='-c' && echo 'build with option nocache'
                     export MANIFEST_SCOPE='local'
                     export PROJ_HOME='.'
+                    cp dc.yaml.default dc.yaml
                     ./dcshell/build -f dc.yaml $nocacheopt
                     echo "=== build completed with rc $?"
                 '''
@@ -42,6 +43,7 @@ pipeline {
                     docker cp install/test/config/opt/shibboleth-idp shibidp_init:/opt/
                     docker rm -f shibidp_init
                     docker-compose -f dc.yaml up -d
+                    sleep 8
                     docker-compose -f dc.yaml exec -T shibidp /scripts/status.sh
                     docker-compose -f dc.yaml logs shibidp
                 '''
