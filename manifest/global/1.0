@@ -1,0 +1,3 @@
+REPO::identinetics/d-shibidp/==#6fb17e7
+REPO::identinetics/dcshell/==#faef1b1
+FROM::intra/centos7_base==5182e96772bf

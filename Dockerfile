@@ -66,19 +66,19 @@ RUN wget -nv -O slf4j.zip http://www.slf4j.org/dist/slf4j-1.7.18.zip \
  && cd ..
 
 # Shibboleth IDP
-ENV PROD_VERSION='3.3.3'
+ENV PROD_VERSION='3.4.0'
 ENV PROD_URL="https://shibboleth.net/downloads/identity-provider/${PROD_VERSION}/shibboleth-identity-provider-${PROD_VERSION}.zip"
-ENV PROD_SHA512='602d256b00c5ec5c27008a762a7828ce8937d2c7b4d0375f48a359b1c97ebd2181a30cf0b7d450e7b70cbceb1b116463ae1a9a39628bc94622d7314c1b24ed70'
+ENV PROD_SHA256='5d161d2a3f495f9e5b2ed57fb54efa609fec08395362d70fcdecaa7474927157  shibboleth-identity-provider-3.4.0.zip'
 ENV PROD_ZIPFILE="shibboleth-identity-provider-${PROD_VERSION}.zip"
 RUN wget -nv -O $PROD_ZIPFILE $PROD_URL \
- && echo "${PROD_SHA512} ${PROD_ZIPFILE}" | sha512sum -c - \
+ && echo "${PROD_SHA256}" | sha256sum -c - \
  && unzip -q ${PROD_ZIPFILE} \
  && ln -s "shibboleth-identity-provider-${PROD_VERSION}" shibboleth-idp-distribution \
  && rm -f ${PROD_ZIPFILE} \
  \
  && [[ -e "shibboleth-idp-distribution/messages/messages_de.properties" ]] || \
         wget -O shibboleth-idp-distribution/messages/messages_de.properties  \
-  	    https://wiki.shibboleth.net/confluence/download/attachments/21660022/messages_de.properties
+        https://wiki.shibboleth.net/confluence/download/attachments/21660022/messages_de.properties
 
 
 # The IdP status page depends on the JSP Standard Tag Library, which is not part of the distribution
@@ -99,7 +99,9 @@ RUN groupadd --gid $UID $USERNAME \
  && chown -R $USERNAME:$USERNAME /opt/default/jetty-base \
  && chown -R $USERNAME:$USERNAME /opt/shibboleth-idp-distribution
 
-RUN mkdir -p /var/log/idp /var/log/jetty
+RUN rm /var/log/* \
+ && mkdir -p /var/log/idp /var/log/jetty \
+ && chown $USERNAME:$USERNAME /var/log/idp /var/log/jetty
 
 VOLUME /etc/pki/shib-idp \
        /opt/jetty-base \
@@ -107,4 +109,4 @@ VOLUME /etc/pki/shib-idp \
        /var/log
        
 EXPOSE 8080
-USER $USERNAME
+
