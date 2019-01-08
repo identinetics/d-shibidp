@@ -5,25 +5,10 @@ LABEL maintainer="Rainer Hörbe <r2h2@hoerbe.at>"
 
 RUN yum -y update \
  && yum -y install curl iproute lsof net-tools openssl tar unzip which wget \
+ && yum -y install java-1.8.0-openjdk-devel.x86_64 \
  && yum clean all && rm -rf /var/cache/yum
+ENV JAVA_HOME=/etc/alternatives/jre_1.8.0_openjdk
 
-# Java
-ENV JAVA_VERSION_MAJOR=8 \
-    JAVA_VERSION_MINOR=181 \
-    JAVA_VERSION_BUILD=13 \
-    JAVA_URL_HASH=96a7b8442fe848ef90c96a2fad6ed6d1
-
-# Downloading Java
-RUN wget --no-cookies --no-check-certificate --no-verbose \
-         --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" \
-         "http://download.oracle.com/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/${JAVA_URL_HASH}/jre-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.rpm" \
- && yum localinstall -y jre-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.rpm \
- && rm -f jre-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.rpm \
- && rm -rf /var/cache/yum
-
-
-ENV JAVA_HOME /usr/java/latest
-#ENV JAVA_HOME=/opt/jre1.8.0
 ENV PATH=$PATH:$JAVA_HOME/bin:/opt/scripts
 RUN echo "export JAVA_HOME=$JAVA_HOME" >> /root/.bashrc \
  && echo "export PATH=$PATH:$JAVA_HOME/bin:/opt/scripts" >> /root/.bashrc
